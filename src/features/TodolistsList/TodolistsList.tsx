@@ -16,6 +16,7 @@ import {Todolist} from './Todolist/Todolist'
 
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import {getStatusAC} from "./app-reducer";
 
 export const TodolistsList: React.FC = () => {
 
@@ -72,7 +73,7 @@ export const TodolistsList: React.FC = () => {
 
     return <>
         <Grid container style={{padding: '20px'}}>
-            <AddItemForm addItem={addTodolist}/>
+            <AddItemForm addItem={addTodolist} disabled={false} />
         </Grid>
         <Grid container spacing={3}>
             {
@@ -83,6 +84,7 @@ export const TodolistsList: React.FC = () => {
                         <Paper style={{padding: '10px'}}>
                             <Todolist
                                 id={tl.id}
+                                entityStatus={tl.entityStatus}
                                 title={tl.title}
                                 tasks={allTodolistTasks}
                                 removeTask={removeTask}
