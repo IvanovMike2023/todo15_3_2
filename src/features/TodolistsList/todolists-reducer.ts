@@ -1,6 +1,7 @@
 import {todolistsAPI, TodolistType} from '../../api/todolists-api'
 import {Dispatch} from 'redux'
-import {getErrorAC, getStatusAC, RequestStatusType} from "./app-reducer";
+import {setErrorAC, setStatusAC, RequestStatusType} from "./app-reducer";
+import {handleServerAppError, handleServerNetworkAppError} from "../../utils/error-utils";
 
 const initialState: Array<TodolistDomainType> = []
 
@@ -41,11 +42,11 @@ export const setTodolistsAC = (todolists: Array<TodolistType>) => ({type: 'SET-T
 // thunks
 export const fetchTodolistsTC = () => {
     return (dispatch: Dispatch<ActionsType>) => {
-        dispatch(getStatusAC('loading'))
+        dispatch(setStatusAC('loading'))
         todolistsAPI.getTodolists()
             .then((res) => {
                 dispatch(setTodolistsAC(res.data))
-                dispatch(getStatusAC('idle'))
+                dispatch(setStatusAC('idle'))
             })
     }
 }
@@ -57,54 +58,50 @@ export const changeTodolistEntityStatusAC = (id: string, status: RequestStatusTy
     }) as const
 export const removeTodolistTC = (todolistId: string) => {
     return (dispatch: Dispatch<ActionsType>) => {
-        dispatch(getStatusAC('loading'))
+        dispatch(setStatusAC('loading'))
         dispatch(changeTodolistEntityStatusAC(todolistId, 'loading'))
         todolistsAPI.deleteTodolist(todolistId)
             .then((res) => {
                 dispatch(removeTodolistAC(todolistId))
-                dispatch(getStatusAC('idle'))
+                dispatch(setStatusAC('idle'))
+            })
+            .catch(error => {
+                handleServerNetworkAppError(dispatch,error)
             })
     }
 }
 export const addTodolistTC = (title: string) => {
     return (dispatch: Dispatch<ActionsType>) => {
-        dispatch(getStatusAC('loading'))
+        dispatch(setStatusAC('loading'))
         todolistsAPI.createTodolist(title)
             .then((res) => {
                 if (res.data.resultCode === 0) {
                     dispatch(addTodolistAC(res.data.data.item))
-                    dispatch(getStatusAC('idle'))
+                    dispatch(setStatusAC('idle'))
                 } else {
-                    if (res.data.messages.length) {
-                        console.log(res.data.messages[0])
-                        dispatch(getErrorAC(res.data.messages[0]))
-                    } else {
-                        dispatch(getErrorAC('Some Error'))
-                    }
-                    dispatch(getStatusAC('failed'))
+                    handleServerAppError(dispatch,res.data)
                 }
-
+            })
+            .catch(error => {
+                handleServerNetworkAppError(dispatch,error)
             })
     }
 }
 export const changeTodolistTitleTC = (id: string, title: string) => {
     return (dispatch: Dispatch<ActionsType>) => {
+        dispatch(setStatusAC('loading'))
         todolistsAPI.updateTodolist(id, title)
             .then((res) => {
                 if (res.data.resultCode === 0) {
                     dispatch(changeTodolistTitleAC(id, title))
-                    dispatch(getStatusAC('idle'))
+                    dispatch(setStatusAC('idle'))
                 } else {
-                    if (res.data.messages.length) {
-                        console.log(res.data.messages[0])
-                        dispatch(getErrorAC(res.data.messages[0]))
-                    } else {
-                        dispatch(getErrorAC('Some Error'))
-                    }
-                    dispatch(getStatusAC('failed'))
+                    handleServerAppError(dispatch,res.data)
                 }
-
             })
+            .catch(error => {
+            handleServerNetworkAppError(dispatch,error)
+        })
     }
 }
 
@@ -117,8 +114,8 @@ type ActionsType =
     | AddTodolistActionType
     | ReturnType<typeof changeTodolistTitleAC>
     | ReturnType<typeof changeTodolistEntityStatusAC>
-    | ReturnType<typeof getStatusAC>
-    | ReturnType<typeof getErrorAC>
+    | ReturnType<typeof setStatusAC>
+    | ReturnType<typeof setErrorAC>
     | ReturnType<typeof changeTodolistFilterAC>
     | SetTodolistsActionType
 export type FilterValuesType = 'all' | 'active' | 'completed';

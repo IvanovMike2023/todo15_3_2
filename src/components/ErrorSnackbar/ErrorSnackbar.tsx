@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import {useSelector} from "react-redux";
-import {getErrorAC, initialStateType} from "../../features/TodolistsList/app-reducer";
+import {setErrorAC, initialStateType} from "../../features/TodolistsList/app-reducer";
 import {useAppDispatch, useAppSelector} from "../../app/store";
 
 export default function ErrorSnackbar() {
@@ -14,14 +14,12 @@ export default function ErrorSnackbar() {
         setOpen(true);
     };
 
-    // const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    //     if (reason === 'clickaway') {
-    //         return;
-    //     }
-    const handleClose = () => {
-dispatch(getErrorAC(null))
-    };
-setTimeout(handleClose,5000)
+    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        dispatch(setErrorAC(null))
+    }
     return (
         <div>
             <Snackbar open={error !== null} autoHideDuration={6000} onClose={handleClose}>
